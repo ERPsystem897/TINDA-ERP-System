@@ -1,0 +1,61 @@
+.navbar-nav .nav-item {
+  margin-bottom: 0.5rem;
+}
+
+.navbar-nav .nav-link {
+  padding: 10px 15px;
+  border-radius: 5px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.navbar-nav .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-item.active .nav-link {
+  font-weight: bold;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffc107 !important;
+}
+  
+.dashboard-header {
+  background-color: #2c2f3f;
+  border-left: 5px solid #17a2b8;
+}
+
+.dashboard-header h1 {
+  font-size: 1.75rem;
+}
+
+  .highlight-card {
+    display: flex;
+    align-items: stretch;
+    min-height: 120px;
+  }
+
+  .highlight-card .card-title-section {
+    background-color: #343a40; /* dark bg */
+    color: #fff;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    font-weight: bold;
+    border-top-left-radius: 0.25rem;
+    border-bottom-left-radius: 0.25rem;
+  }
+
+  .highlight-card .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    text-align: center;
+  }
+
+  .highlight-card .value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #212529;
+  }

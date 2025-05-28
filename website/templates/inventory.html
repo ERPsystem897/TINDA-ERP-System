@@ -1,0 +1,509 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="mt-4">
+        <div class="dashboard-header bg-dark text-white shadow-sm rounded p-4 mb-4">
+          <h1 class="m-0"><i class="fas fa-warehouse me-2"></i> Inventory</h1>
+        </div>
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+          <div class="col-md-4 mb-4">
+            <div class="card shadow">
+              <div class="card-header bg-primary text-white"><strong>Current Inventory</strong></div>
+              <div class="card-body">
+                <ul class="list-unstyled">
+                  <li><strong>Ivory Rice:</strong> {{ ivory_rice_inventory }} kg</li>
+                  <li><strong>Doña Conchita Rice:</strong> {{ dona_conchita_inventory }} kg</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-8">
+            <div class="row">
+              <!-- Ivory Rice Forecast Card -->
+              <div class="col-md-6">
+                <div class="card shadow mb-3">
+                  <div class="card-header bg-warning text-dark text-center"><strong>Ivory Rice Inventory Forecast</strong></div>
+                  <div class="card-body">
+                    <div class="text-center">
+                      <i class="fas fa-rice-bowl fa-3x mb-2"></i>  
+                    </div>
+                    <div class="text-center">
+                      <h5>
+                        {% set ivory_percent = (ivory_rice_inventory / max_stock_ivory_rice) * 100 if max_stock_ivory_rice else 0 %}
+                        {% if ivory_percent >= 51 %}
+                          <i class="fas fa-check-circle fa-lg me-1"></i> 
+                          <span class="text-success">High Stock Level</span>
+                        {% elif ivory_percent >= 21 %}
+                          <i class="fas fa-exclamation-triangle fa-3x mb-2 text-warning"></i>
+                          <span style="display: block;" class="text-warning">Moderate Stock Level</span>
+                        {% else %}
+                          <i class="fas fa-exclamation-circle fa-3x mb-2 text-danger"></i>
+                          <span style="display: block;" class="text-danger">Low Stock Level</span>
+                        {% endif %}
+                      </h5>
+                    </div>
+                    <div class="text-center">
+                      <p>
+                        {% if ivory_percent >= 51 %}
+                          Sufficient stock for the upcoming months.
+                        {% elif ivory_percent >= 21 %}
+                          Consider replenishing stock soon.
+                        {% else %}
+                          Immediate replenishment required.
+                        {% endif %}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Doña Conchita Forecast Card -->
+              <div class="col-md-6">
+                <div class="card shadow mb-3">
+                  <div class="card-header bg-warning text-dark text-center"><strong>Doña Conchita Inventory Forecast</strong></div>
+                  <div class="card-body">
+                    <div class="text-center">
+                      <i class="fas fa-rice-bowl fa-3x mb-2"></i>  
+                    </div>
+                    <div class="text-center">
+                      <h5>
+                        {% set dona_percent = (dona_conchita_inventory / max_stock_dona_conchita) * 100 if max_stock_dona_conchita else 0 %}
+                        {% if dona_percent >= 51 %}
+                          <i class="fas fa-check-circle fa-3x mb-2 text-success"></i> 
+                          <span style="display: block;" class="text-success">High Stock Level</span>
+                        {% elif dona_percent >= 21 %}
+                          <i class="fas fa-exclamation-triangle fa-3x mb-2 text-warning"></i>
+                          <span style="display: block;" class="text-warning">Moderate Stock Level</span>
+                        {% else %}
+                          <i class="fas fa-exclamation-circle fa-3x mb-2 text-danger"></i>
+                          <span style="display: block;" class="text-danger">Low Stock Level</span>
+                        {% endif %}
+                      </h5>
+                    </div>
+                    <div class="text-center">
+                      <p>
+                        {% if dona_percent >= 51 %}
+                          Sufficient stock for the upcoming months.
+                        {% elif dona_percent >= 21 %}
+                          Consider replenishing stock soon.
+                        {% else %}
+                          Immediate replenishment required.
+                        {% endif %}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inventory Table -->
+        <div class="card shadow mb-4">
+          <div class="card-header bg-secondary text-white">
+            <strong>Inventory History for the Year 2025</strong>
+            <button class="btn btn-success btn-sm add-btn" style="float: right;">Add Inventory <i class="fa fa-plus"></i></button>
+          </div>
+          <div class="card-body table-responsive">
+            <table class="table table-bordered table-hover ">
+              <thead class="table-light">
+                <tr>
+                  <th>Month</th>
+                  <th>Year</th>
+                  <th>Product</th>
+                  <th>Beginning Inventory (kg)</th>
+                  <th>Current Stock (kg)</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for record in inventory_history %}
+                <tr
+                      data-id="{{ record.id }}"
+                      data-product_name="{{ record.product_name }}"
+                      data-year="{{ record.year }}"
+                      data-month="{{ record.month }}"
+                      data-beginning_inventory="{{ record.beginning_inventory }}"
+                      data-ending_inventory="{{ record.current_stock }}"
+                      data-market_price="{{ record.market_price_per_kg }}"
+                    >
+                  <td>{{ record.month }}</td>
+                  <td>{{ record.year }}</td>
+                  <td>{{ record.product_name }}</td>
+                  <td>{{ record.beginning_inventory }}</td>
+                  <td>{{ record.current_stock }}</td>
+                  <td>
+                    {% if record.year == latest_year and record.month == latest_month_name %}
+                    <button class="btn btn-warning btn-sm edit-btn"><i class="fas fa-edit"></i></button>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="6">No data available</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Inventory Modal -->
+<div class="modal fade" id="editInventoryModal" tabindex="-1" aria-labelledby="editInventoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="editInventoryForm" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editInventoryModalLabel">Edit Inventory</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editID" name="id">
+
+        <div class="mb-3">
+          <label for="editYear" class="form-label">Year</label>
+          <input type="text" id="editYear" class="form-control">
+        </div>
+
+        <div class="mb-3">
+          <label for="editMonth" class="form-label">Month</label>
+          <input type="text" id="editMonth" class="form-control">
+        </div>
+
+        <div class="mb-3">
+          <label for="editProductName" class="form-label">Product</label>
+          <input type="text" id="editProductName" class="form-control">
+        </div>
+
+        <div class="mb-3">
+          <label for="editBeginningInventory" class="form-label">Beginning Inventory (kg)</label>
+          <input type="number" id="editBeginningInventory" class="form-control">
+        </div>
+
+        <div class="mb-3">
+          <label for="editEndingInventory" class="form-label">Ending Inventory (kg)</label>
+          <input type="number" id="editEndingInventory" name="ending_inventory_kg" class="form-control" min="0" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="editKilosSold" class="form-label">Kilos Sold (auto-calculated)</label>
+          <input type="number" id="editKilosSold" class="form-control">
+        </div>
+
+        <div class="mb-3">
+          <label for="editMarketPrice" class="form-label">Market Price per kg (PHP)</label>
+          <input type="number" id="editMarketPrice" class="form-control">
+        </div>
+
+        <div class="mb-3">
+          <label for="editTotalSales" class="form-label">Total Sales (auto-calculated PHP)</label>
+          <input type="number" id="editTotalSales" class="form-control">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Add Inventory Modal -->
+<div class="modal fade" id="addInventoryModal" tabindex="-1" aria-labelledby="addInventoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="addInventoryForm" class="modal-content" autocomplete="off">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addInventoryModalLabel">Add Inventory</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Year, Month, Product dropdowns same as before -->
+
+        <div class="mb-3">
+          <label for="addYear" class="form-label">Year</label>
+          <input type="number" id="addYear" name="year" class="form-control" min="2000" max="2100" required placeholder="e.g. 2025">
+        </div>
+
+        <div class="mb-3">
+          <label for="addMonth" class="form-label">Month</label>
+          <select id="addMonth" name="month" class="form-select" required>
+            <option value="">Select Month</option>
+            <option value="1">January</option>
+            <option value="2">February</option>
+            <option value="3">March</option>
+            <option value="4">April</option>
+            <option value="5">May</option>
+            <option value="6">June</option>
+            <option value="7">July</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="addProduct" class="form-label">Product</label>
+          <select id="addProduct" name="product_id" class="form-select" required>
+            <option value="">Select Product</option>
+            {% for product in products %}
+              <option value="{{ product.id }}">{{ product.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Beginning Inventory -->
+        <div class="mb-3">
+          <label for="addBeginningInventory" class="form-label">Beginning Inventory (kg)</label>
+          <input type="number" id="addBeginningInventory" name="beginning_inventory_kg" class="form-control" min="0" step="0.01" required placeholder="Enter beginning inventory in kg">
+        </div>
+
+        <!-- Ending Inventory -->
+        <div class="mb-3">
+          <label for="addEndingInventory" class="form-label">Ending Inventory (kg)</label>
+          <input type="number" id="addEndingInventory" name="ending_inventory_kg" class="form-control" min="0" step="0.01" required placeholder="Enter ending inventory in kg">
+        </div>
+
+        <!-- Market Price -->
+        <div class="mb-3">
+          <label for="addMarketPrice" class="form-label">Market Price per kg (PHP)</label>
+          <input type="number" id="addMarketPrice" name="market_price_per_kg" class="form-control" min="0" step="0.01" required placeholder="Enter market price per kg">
+        </div>
+
+        <div class="mb-3">
+          <label for="addKilosSold" class="form-label">Kilos Sold (kg)</label>
+          <input type="text" id="addKilosSold" name="kilos_sold" class="form-control" readonly value="0">
+        </div>
+
+        <div class="mb-3">
+          <label for="addTotalSales" class="form-label">Total Monthly Sales (PHP)</label>
+          <input type="text" id="addTotalSales" name="total_monthly_sales" class="form-control" readonly value="0.00">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-success">Add Inventory</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // --- Edit Inventory Modal Setup ---
+  const editModalEl = document.getElementById('editInventoryModal');
+  const editModal = new bootstrap.Modal(editModalEl);
+  const editForm = document.getElementById('editInventoryForm');
+
+  // When Edit button clicked
+  document.querySelectorAll('.edit-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+      // Ensure button is not the Add Inventory button (avoid conflict)
+      if (button.classList.contains('add-btn')) return;
+
+      const row = e.target.closest('tr');
+      if (!row) return;
+
+      // Get data from row attributes
+      const id = row.getAttribute('data-id');
+      const productName = row.getAttribute('data-product_name');
+      const year = row.getAttribute('data-year');
+      const month = row.getAttribute('data-month');
+      const beginningInventory = parseFloat(row.getAttribute('data-beginning_inventory')) || 0;
+      const endingInventory = parseFloat(row.getAttribute('data-ending_inventory')) || 0;
+      const marketPrice = parseFloat(row.getAttribute('data-market_price')) || 0;
+
+      // Calculate kilos sold and total sales
+      const kilosSold = Math.max(0, beginningInventory - endingInventory);
+      const totalSales = kilosSold * marketPrice;
+
+      // Populate modal fields
+      document.getElementById('editID').value = id;
+      document.getElementById('editProductName').value = productName;
+      document.getElementById('editYear').value = year;
+      document.getElementById('editMonth').value = month;
+      document.getElementById('editBeginningInventory').value = beginningInventory.toFixed(0);
+      document.getElementById('editEndingInventory').value = endingInventory.toFixed(0);
+      document.getElementById('editKilosSold').value = kilosSold.toFixed(0);
+      document.getElementById('editMarketPrice').value = marketPrice.toFixed(0);
+      document.getElementById('editTotalSales').value = totalSales.toFixed(0);
+
+      editModal.show();
+    });
+  });
+
+  // Recalculate kilos sold and total sales when ending inventory changes in Edit modal
+  document.getElementById('editEndingInventory').addEventListener('input', () => {
+    const beginning = parseFloat(document.getElementById('editBeginningInventory').value) || 0;
+    let ending = parseFloat(document.getElementById('editEndingInventory').value);
+    if (isNaN(ending) || ending < 0) {
+      ending = 0;
+      document.getElementById('editEndingInventory').value = 0;
+    }
+
+    const kilosSold = Math.max(0, beginning - ending);
+    const marketPrice = parseFloat(document.getElementById('editMarketPrice').value) || 0;
+    const totalSales = kilosSold * marketPrice;
+
+    document.getElementById('editKilosSold').value = kilosSold.toFixed(0);
+    document.getElementById('editTotalSales').value = totalSales.toFixed(0);
+  });
+
+  // Recalculate ending inventory and total sales when kilos sold changes in Edit modal
+  document.getElementById('editKilosSold').addEventListener('input', () => {
+    const beginning = parseFloat(document.getElementById('editBeginningInventory').value) || 0;
+    let kilosSold = parseFloat(document.getElementById('editKilosSold').value);
+    if (isNaN(kilosSold) || kilosSold < 0) {
+      kilosSold = 0;
+      document.getElementById('editKilosSold').value = 0;
+    }
+
+    const endingInventory = Math.max(0, beginning - kilosSold);
+
+    const marketPrice = parseFloat(document.getElementById('editMarketPrice').value) || 0;
+    const totalSales = kilosSold * marketPrice;
+
+    document.getElementById('editEndingInventory').value = endingInventory.toFixed(0);
+    document.getElementById('editTotalSales').value = totalSales.toFixed(0);
+  });
+
+  // Handle Edit form submission
+  editForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const id = document.getElementById('editID').value;
+    const endingInventory = parseFloat(document.getElementById('editEndingInventory').value);
+    const kilosSold = parseFloat(document.getElementById('editKilosSold').value);
+    const totalSales = parseFloat(document.getElementById('editTotalSales').value);
+
+    try {
+      const response = await fetch(`/inventory/edit/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ending_inventory_kg: endingInventory,
+          kilos_sold: kilosSold,
+          total_sales: totalSales
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert('Inventory updated successfully.');
+        editModal.hide();
+
+        // Update the row in the table with new ending inventory value
+        const row = document.querySelector(`tr[data-id="${id}"]`);
+        if (row) {
+          row.setAttribute('data-ending_inventory', endingInventory);
+          row.cells[4].innerText = endingInventory.toFixed(0);
+        }
+      } else {
+        alert('Update failed: ' + (result.error || 'Unknown error'));
+      }
+    } catch (error) {
+      alert('Error updating inventory: ' + error.message);
+    }
+  });
+
+  // --- Add Inventory Modal Setup ---
+  const addModalEl = document.getElementById('addInventoryModal');
+  const addModal = new bootstrap.Modal(addModalEl);
+  const addForm = document.getElementById('addInventoryForm');
+
+  // Inputs for calculation
+  const addBeginningInput = document.getElementById('addBeginningInventory');
+  const addEndingInput = document.getElementById('addEndingInventory');
+  const addPriceInput = document.getElementById('addMarketPrice');
+  const addKilosSoldInput = document.getElementById('addKilosSold');
+  const addTotalSalesInput = document.getElementById('addTotalSales');
+
+  // Open Add Modal when Add Inventory button clicked
+  const addBtn = document.querySelector('.btn-success.add-btn');
+  if (addBtn) {
+    addBtn.addEventListener('click', () => {
+      addForm.reset();
+      // Reset calculated fields too
+      addKilosSoldInput.value = "0";
+      addTotalSalesInput.value = "0";
+      addModal.show();
+    });
+  }
+
+  // Function to update Kilos Sold and Total Sales on Add Modal
+  function updateAddTotals() {
+    const beginning = parseFloat(addBeginningInput.value) || 0;
+    const ending = parseFloat(addEndingInput.value) || 0;
+    const price = parseFloat(addPriceInput.value) || 0;
+
+    const kilosSold = Math.max(0, beginning - ending);
+    const totalSales = kilosSold * price;
+
+    addKilosSoldInput.value = kilosSold.toFixed(0);
+    addTotalSalesInput.value = totalSales.toFixed(0);
+  }
+
+  // Add event listeners to recalc on input changes in Add Modal
+  addBeginningInput.addEventListener('input', updateAddTotals);
+  addEndingInput.addEventListener('input', updateAddTotals);
+  addPriceInput.addEventListener('input', updateAddTotals);
+
+  // Handle Add form submission
+  addForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Collect form data, including calculated fields
+    const formData = {
+      year: parseInt(addForm.year.value),
+      month: parseInt(addForm.month.value),
+      product_id: parseInt(addForm.product_id.value),
+      beginning_inventory_kg: parseFloat(addForm.beginning_inventory_kg.value),
+      ending_inventory_kg: parseFloat(addForm.ending_inventory_kg.value),
+      market_price_per_kg: parseFloat(addForm.market_price_per_kg.value),
+      kilos_sold: parseFloat(addForm.kilos_sold.value),
+      total_monthly_sales: parseFloat(addForm.total_monthly_sales.value)
+    };
+
+    try {
+      const response = await fetch('/inventory/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert('Inventory added successfully.');
+        addModal.hide();
+        location.reload();
+      } else {
+        alert('Add failed: ' + (result.error || 'Unknown error'));
+      }
+    } catch (error) {
+      alert('Error adding inventory: ' + error.message);
+    }
+  });
+});
+</script>
+{% endblock %}

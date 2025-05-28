@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row mt-4">
+    <div class="col-12">
+      <!-- Dashboard Header -->
+      <div class="dashboard-header bg-dark text-white shadow-sm rounded p-4 mb-4">
+        <h1 class="m-0"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</h1>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Stats: 3 Boxes in a Row -->
+  <div class="row mb-4">
+    <!-- Total Sales -->
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm text-center">
+        <div class="card-header bg-info text-white">
+          <strong><i class="fas fa-coins me-2"></i> Total Sales (₱) - {{ current_year }} Combined</strong>
+        </div>
+        <div class="card-body">
+          <h3 class="text-success mb-0">₱ {{ total_sales | default(0) | int }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Kilos Sold -->
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm text-center">
+        <div class="card-header bg-info text-white">
+          <strong><i class="fas fa-weight-hanging me-2"></i> Total Kilos Sold - {{ current_year }} Combined</strong>
+        </div>
+        <div class="card-body">
+          <h3 class="text-primary mb-0">{{ total_kilos | default(0) | int }} kg</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Number of Products -->
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm text-center">
+        <div class="card-header bg-info text-white">
+          <strong><i class="fas fa-boxes me-2"></i> Number of Products</strong>
+        </div>
+        <div class="card-body">
+          <h3 class="text-warning mb-0">{{ products | length }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monthly Sales and Kilos Charts -->
+  <div class="row mb-4">
+    {% for product in products %}
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <strong><i class="fas fa-chart-line text-primary me-2"></i>Monthly Sales & Kilos - {{ product.name }}</strong>
+          <!-- Year Dropdown -->
+          <select class="form-select form-select-sm w-auto" onchange="updateChart({{ product.id }}, this.value)">
+            {% for y in years %}
+              <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="card-body">
+          <canvas id="salesKilosChart{{ product.id }}"></canvas>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Mission and Vision -->
+  <div class="row mb-5">
+        <div class="col-md-6 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-success text-white">
+          <strong><i class="fas fa-handshake me-2"></i>Mission</strong>
+        </div>
+        <div class="card-body">
+          <p class="mb-0">
+            To provide an all-in-one, affordable, and efficient ERP platform tailored for retail and small business operations—streamlining sales, inventory, finance, and customer management to help businesses grow with confidence.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-primary text-white">
+          <strong><i class="fas fa-bullseye me-2"></i>Vision</strong>
+        </div>
+        <div class="card-body">
+          <p class="mb-0">
+            To become the leading ERP solution that empowers local retail businesses through smart, scalable, and user-friendly technology.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+const baseMonthLabels = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+// Prepare product data from backend (safe to JSON)
+const productData = {
+  {% for product in products %}
+  {{ product.id }}: {
+    {% for y in years %}
+    "{{ y }}": {
+      sales: {{ product.data_by_year[y]['sales'] | tojson }},
+      kilos: {{ product.data_by_year[y]['kilos'] | tojson }}
+    },
+    {% endfor %}
+  },
+  {% endfor %}
+};
+
+const charts = {};
+
+// Initialize all charts with the default year
+{% for product in products %}
+const ctx{{ product.id }} = document.getElementById('salesKilosChart{{ product.id }}').getContext('2d');
+charts[{{ product.id }}] = new Chart(ctx{{ product.id }}, {
+  type: 'line',
+  data: {
+    labels: baseMonthLabels,
+    datasets: [
+      {
+        label: 'Sales (₱)',
+        data: productData[{{ product.id }}]["{{ current_year }}"].sales,
+        borderColor: 'green',
+        fill: false,
+        tension: 0.1
+      },
+      {
+        label: 'Kilos Sold',
+        data: productData[{{ product.id }}]["{{ current_year }}"].kilos,
+        borderColor: 'purple',
+        fill: false,
+        tension: 0.1
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      x: { title: { display: true, text: 'Month' } },
+      y: { title: { display: true, text: 'Value' } }
+    }
+  }
+});
+{% endfor %}
+
+function updateChart(productId, year) {
+  const chart = charts[productId];
+  if (!chart) return;
+
+  const newData = productData[productId][year];
+  if (!newData) return;
+
+  chart.data.datasets[0].data = newData.sales;
+  chart.data.datasets[1].data = newData.kilos;
+  chart.update();
+}
+
+// Refresh all charts on window resize
+window.addEventListener('resize', () => {
+  Object.values(charts).forEach(chart => {
+    chart.resize();
+  });
+});
+</script>
+{% endblock %}
+

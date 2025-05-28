@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Future Forecast{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-8 mb-4">
+      <div class="mt-4">
+        <div class="dashboard-header bg-dark text-white shadow-sm rounded p-4 mb-4">
+          <h1 class="m-0"><i class="fas fa-chart-line me-2"></i> Future Forecast Chart (2025)</h1>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="table-responsive mb-4">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Product Name</th>
+                    <th>Year</th>
+                    <th>Month</th>
+                    <th>Previous Month Kilos Sold (May)</th>
+                    <th>Forecasted Kilos Sold (June)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for forecast in forecasts %}
+                  <tr>
+                    <td>{{ forecast.product_name }}</td>
+                    <td>{{ forecast.year }}</td>
+                    <td>{{ forecast.month_abbreviation }}</td>
+                    <td>{{ forecast.previous_month_kilos_sold }}</td>
+                    <td style="font-weight:bold">{{ forecast.forecasted_sales }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="chart-container bg-white">
+              <canvas id="forecastedKilosChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="mt-4">
+            <div class="dashboard-header bg-dark text-white shadow-sm rounded p-4 mb-4">
+                <h1 class="m-0"><i class="fas fa-calculator me-2"></i> Accuracy Metrics</h1>
+            </div>
+
+            <div class="row">
+              <div class="col-sm-12 col-md-6">
+                <div class="mt-4">
+                      <h3 class="text-white">Accuracy Metrics for Dona Conchita Rice:</h3>
+                      <table class="table table-bordered">
+                          <thead>
+                              <tr>
+                                  <th>Metric</th>
+                                  <th>Value</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              <tr>
+                                  <td>Mean Absolute Error (MAE)</td>
+                                  <td>{{ mae_dona | round(2) }}</td>
+                              </tr>
+                              <tr>
+                                  <td>Mean Squared Error (MSE)</td>
+                                  <td>{{ mse_dona | round(2) }}</td>
+                              </tr>
+                              <tr>
+                                  <td>Root Mean Squared Error (RMSE)</td>
+                                  <td>{{ rmse_dona | round(2)  }}</td>
+                              </tr>
+                              <tr>
+                                  <td>Mean Absolute Percentage Error (MAPE)</td>
+                                  <td>{{ mape_dona | round(2)  }}%</td>
+                              </tr>
+                          </tbody>
+                      </table>
+                  </div>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                            <div class="mt-4">
+                <h3 class="text-white">Accuracy Metrics for Ivory Rice:</h3>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Mean Absolute Error (MAE)</td>
+                            <td>{{ mae_ivory | round(2)  }}</td>
+                        </tr>
+                        <tr>
+                            <td>Mean Squared Error (MSE)</td>
+                            <td>{{ mse_ivory | round(2)  }}</td>
+                        </tr>
+                        <tr>
+                            <td>Root Mean Squared Error (RMSE)</td>
+                            <td>{{ rmse_ivory | round(2)  }}</td>
+                        </tr>
+                        <tr>
+                            <td>Mean Absolute Percentage Error (MAPE)</td>
+                            <td>{{ mape_ivory | round(2)  }}%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+              </div>
+            </div>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side: Recommended Order Quantity Cards -->
+ <div class="col-md-4">
+  <div class="mt-4">
+    <div class="dashboard-header bg-dark text-white shadow-sm rounded p-4 mb-4">
+      <h1 class="m-0"><i class="fas fa-box-open me-2"></i> Recommended Order Quantity (kg)</h1>
+    </div>
+
+    {% for forecast in forecasts %}
+    <div class="card mb-3 shadow-sm highlight-card">
+      <div class="card-title-section">
+        {{ forecast.product_name }}
+      </div>
+      <div class="card-body">
+        <div class="value">
+          {{ forecast.recommended_order_kg | round(2) }} kg
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+  </div>
+</div>
+
+{% block scripts %}
+  <!-- Include Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Example data for Linear Regression Chart
+    const forecastData = {
+      labels: [{% for forecast in forecasts %} "{{ forecast.month_abbreviation }}", {% endfor %}],
+      datasets: [{
+        label: 'Forecasted Kilos Sold',
+        data: [{% for forecast in forecasts %} {{ forecast.forecasted_sales | int }}, {% endfor %}],
+        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderWidth: 2,
+        fill: true
+      }]
+    };
+
+    const config = {
+      type: 'line',
+      data: forecastData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Month'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Kilos Sold'
+            },
+            beginAtZero: true
+          }
+        }
+      }
+    };
+
+    // Render the chart
+    window.onload = function() {
+      const ctx = document.getElementById('forecastedKilosChart').getContext('2d');
+      new Chart(ctx, config);
+    };
+  </script>
+{% endblock %}
+
+{% endblock %}
